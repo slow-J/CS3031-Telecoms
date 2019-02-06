@@ -17,20 +17,19 @@ import tcdIO.*;
  */
 public class Management_Console extends Node
 {
-  static final int DEFAULT_SRC_PORT = 1;
-  static final int DEFAULT_DST_PORT = 4;
+  static final int DEFAULT_SRC_PORT = 2000;
+  static final int DEFAULT_DST_PORT = 4000;
   static final String DEFAULT_DST_NODE = "localhost";
-  private int port;
-  private byte[] lastPayload;
+  
   Terminal terminal;
   InetSocketAddress dstAddress;
   // String txt = "not initialised";
 
-  Management_Console(Terminal terminal, String dstHost, int srcPort) throws SocketTimeoutException
+  Management_Console(Terminal terminal, String dstHost, int dstPort, int srcPort) throws SocketTimeoutException
   {
     try
     {
-      setPort(srcPort);
+      dstAddress = new InetSocketAddress(dstHost, dstPort);
       this.terminal = terminal;
       socket = new DatagramSocket(srcPort);
       listener.go();
@@ -43,11 +42,12 @@ public class Management_Console extends Node
 
   public synchronized void onReceipt(DatagramPacket packet)
   {
-    // checkIfBan();
-  }
+    StringContent content = new StringContent(packet);
+    String checkBan = content.toString();
+    //init ban list at start
+    //check now
+    // checkIfBan(checkBan, );
 
-  public void start() throws SocketTimeoutException
-  {
     try
     {
       while (true)
@@ -55,7 +55,7 @@ public class Management_Console extends Node
         // add to banlist
         Byte finDest = null;
 
-        DatagramPacket packet = null;
+        DatagramPacket sendPacket = null;
 
         byte[] payload = null;
         byte[] header = null;
@@ -76,10 +76,10 @@ public class Management_Console extends Node
         System.arraycopy(header, 0, buffer, 0, header.length);
         System.arraycopy(payload, 0, buffer, header.length, payload.length);
 
-        terminal.println("Sending packet to port: " + DEFAULT_SRC_PORT);
-        packet = new DatagramPacket(buffer, buffer.length, dstAddress); // send packet to dest
+        terminal.println("Sending packet to proxy: " + DEFAULT_SRC_PORT);
+        sendPacket = new DatagramPacket(buffer, buffer.length, dstAddress); // send packet to dest
 
-        socket.send(packet);
+        socket.send(sendPacket);
         terminal.println("Message sent");
       }
     } catch (SocketTimeoutException s)
@@ -92,9 +92,17 @@ public class Management_Console extends Node
     }
   }
 
-  public void setPort(int p)
+  public void start() throws SocketTimeoutException
   {
-    this.port = p;
+    terminal.println("Waiting for contact");
+    try
+    {
+      this.wait();
+    } catch (InterruptedException e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   public static String initBanList()
@@ -182,8 +190,8 @@ public class Management_Console extends Node
     try
     {
       Terminal terminal = new Terminal("Management_Console");
-      (new Management_Console(terminal, DEFAULT_DST_NODE, DEFAULT_SRC_PORT)).start();
-
+      (new Management_Console(terminal, DEFAULT_DST_NODE, DEFAULT_DST_PORT, DEFAULT_SRC_PORT )).start();
+     
       terminal.println("Program completed");
     } catch (java.lang.Exception e)
     {
