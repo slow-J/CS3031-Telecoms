@@ -54,7 +54,7 @@ public class Management_Console
   }
   public static void initBanList()
   {
-     BufferedReader reader = new BufferedReader(new FileReader("C:\\UNIV\\Redes\\workspace\\Copy of Ex_4.3_Teste\\lists\\blacklist.txt"));
+     BufferedReader reader = new BufferedReader(new FileReader("./blacklist.txt"));
      
     for (String line; (line = reader.readLine()) != null; txt += line);  
   }
