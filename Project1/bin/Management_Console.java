@@ -1,12 +1,16 @@
-
+import java.net.DatagramSocket;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
 /**
  * @author Jakub
  *
  */
 public class Management_Console
 {
-  static final int DEFAULT_SRC_PORT = 2001;
-  static final int DEFAULT_DST_PORT = 1004; 
+  static final int DEFAULT_SRC_PORT = 1;
+  static final int DEFAULT_DST_PORT = 4; 
   static final String DEFAULT_DST_NODE = "localhost";
   private int port;
   private byte[] lastPayload;
@@ -29,6 +33,25 @@ public class Management_Console
 		}
 		
 	}
+  public synchronized void onReceipt(DatagramPacket packet) 
+  {
+    //checkIfBan();
+  }
+  public void start() throws SocketTimeoutException
+  {
+    try
+    {
+      while (true) 
+      {
+        //add to banlist
+      }
+    }
+  }
+
+  public void setPort(int p) 
+  {
+    this.port = p;
+  }
   public static void initBanList()
   {
      BufferedReader reader = new BufferedReader(new FileReader("C:\\UNIV\\Redes\\workspace\\Copy of Ex_4.3_Teste\\lists\\blacklist.txt"));
