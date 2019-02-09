@@ -42,11 +42,15 @@ public class Management_Console extends Node
 
   public synchronized void onReceipt(DatagramPacket packet)
   {
+    boolean banned = true;	
     StringContent content = new StringContent(packet);
     String checkBan = content.toString();
     //init ban list at start
     //check now
-    // checkIfBan(checkBan, );
+
+    //make class for banlist and constructor 
+	
+    // Banlist.checkIfBan(checkBan);
 
     try
     {
@@ -64,12 +68,15 @@ public class Management_Console extends Node
         terminal.println("--------------------------------------------------------------------");
         header = new byte[PacketContent.HEADERLENGTH];
 
-        finDest = terminal.readByte("Input message recepient(1/2/3/4/5/6): ");// select recipient
-
-        header[1] = finDest;
+        if(banned)
+        {
+	  header[2]=0;
+	}
+	else
+	{
+	  header[2]=1;
+	}
         // use header[2] for ban or not
-        // header[2] = ;
-
         // send to source
         dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_SRC_PORT);
         buffer = new byte[header.length + payload.length];
