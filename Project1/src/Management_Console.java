@@ -68,14 +68,13 @@ public class Management_Console extends Node
         terminal.println("--------------------------------------------------------------------");
         header = new byte[PacketContent.HEADERLENGTH];
 
-        if(banned)
+        if (banned)
         {
-	  header[2]=0;
-	}
-	else
-	{
-	  header[2]=1;
-	}
+          header[1] = 0;
+        } else
+        {
+          header[1] = 1;
+        }
         // use header[2] for ban or not
         // send to source
         dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_SRC_PORT);
@@ -99,18 +98,11 @@ public class Management_Console extends Node
     }
   }
 
-  public void start() throws SocketTimeoutException
+  public synchronized void start() throws Exception 
   {
     terminal.println("Waiting for contact");
-    try
-    {
-      this.wait();
-    } catch (InterruptedException e)
-    {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-  }
+    this.wait();
+}
 
   public static String initBanList()
   {
