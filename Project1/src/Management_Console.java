@@ -28,7 +28,6 @@ public class Management_Console extends Node
   
   Terminal terminal;
   InetSocketAddress dstAddress;
-  // String txt = "not initialised";
 
   Management_Console(Terminal terminal, String dstHost, int dstPort, int srcPort) throws SocketTimeoutException
   {
@@ -53,8 +52,6 @@ public class Management_Console extends Node
     //init ban list at start
     //check now
 
-    //make class for banlist and constructor 
-	
     // Banlist.checkIfBan(checkBan);
     if(checkIfValidURL(checkBan))
     {
@@ -63,8 +60,7 @@ public class Management_Console extends Node
         banned=false;
       }
     }
-    
-  
+      
     try
     {
       while (true)
@@ -113,15 +109,14 @@ public class Management_Console extends Node
   public synchronized void start() throws Exception 
   {
     initBanList();
-    terminal.println("Waiting for contact");
+    terminal.print("Waiting for contact\n");
     while (true) 
     {
       int action = (terminal.readInt("press 1 to add url to banlist or 2 to check is a url banned\n"));
       if (action==1)
       {
         String ban = "http://"+(terminal.readString("type website to ban without the www or http\n"));
-        boolean isValid=checkIfValidURL(ban);
-        if(isValid)
+        if(checkIfValidURL(ban))
         {
           add2ban(ban);
         }
@@ -213,10 +208,10 @@ public class Management_Console extends Node
         // TODO Auto-generated catch block
         e2.printStackTrace();
       }
-      terminal.println(banWord+", successfully added to banlist\n");
+      terminal.println(banWord+", successfully added to banlist");
     }
     else
-      terminal.println(banWord+", already banned\n");
+      terminal.println(banWord+", already banned");
   }
 
   public static boolean checkIfBan(String cmp)
