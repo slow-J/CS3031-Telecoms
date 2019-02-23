@@ -1,5 +1,7 @@
 import java.net.DatagramSocket;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -68,18 +70,16 @@ public class Management_Console extends Node
         terminal.println("--------------------------------------------------------------------");
         header = new byte[PacketContent.HEADERLENGTH];
 
-        if(banned)
+        if (banned)
         {
-	  header[2]=0;
-	}
-	else
-	{
-	  header[2]=1;
-	}
+          header[1] = 0;
+        } else
+        {
+          header[1] = 1;
+        }
         // use header[2] for ban or not
         // send to source
         dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_SRC_PORT);
-        buffer = new byte[header.length + payload.length];
         System.arraycopy(header, 0, buffer, 0, header.length);
         System.arraycopy(payload, 0, buffer, header.length, payload.length);
 
@@ -99,62 +99,74 @@ public class Management_Console extends Node
     }
   }
 
-  public void start() throws SocketTimeoutException
+  public synchronized void start() throws Exception 
   {
+    initBanList();
     terminal.println("Waiting for contact");
-    try
+    while (true) 
     {
-      this.wait();
-    } catch (InterruptedException e)
-    {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      //terminal.println("press 1 to add to banlist, 2 to view ");
+      int action = (terminal.readInt("press 1 to add to banlist, 2 to view"));
+      if (action==1)
+      {
+        String ban = (terminal.readString("type website to ban"));
+        add2ban(ban);
+        terminal.println(ban+" successfully added to banlist");
+      }
+      else if (action==2)
+      {
+        
+      }
+      else
+      {
+        terminal.println("Invalid selection");
+      }
     }
-  }
+}
 
-  public static String initBanList()
+  public static void initBanList()
   {
-    // take in from file
-    String txt = "";
-    BufferedReader reader;
+    //creates file if doesnt exist
     try
     {
-      reader = new BufferedReader(new FileReader("./blacklist.txt"));
-      for (String line; (line = reader.readLine()) != null; txt += line)
-        ;
-    } catch (FileNotFoundException e)
-    {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      File myFile; 
+      myFile = new File("banlist.txt");
+      myFile.createNewFile();
     } catch (IOException e)
     {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
 
-    return txt;
   }
-
-  public static void add2ban(String banWord, String txt)
+  
+  public static void add2ban(String banWord)
   {
-    Writer writer = null;
+    //adds banWord to the banlist
+    BufferedWriter output=null;
     try
     {
-      writer = new FileWriter("blacklist.txt");
-      writer.write(txt);
-    } catch (IOException e)
+      output = new BufferedWriter(new FileWriter("banlist.txt", true) );
+    } catch (IOException e2)
     {
       // TODO Auto-generated catch block
-      e.printStackTrace();
+      e2.printStackTrace();
     }
-
     try
     {
-      writer.close();
-    } catch (IOException e)
+      output.newLine();
+      output.append(banWord);
+    } catch (IOException e2)
     {
       // TODO Auto-generated catch block
-      e.printStackTrace();
+      e2.printStackTrace();
+    }
+    try
+    {
+      output.close();
+    } catch (IOException e2)
+    {
+      // TODO Auto-generated catch block
+      e2.printStackTrace();
     }
     System.out.println("Bans updated");
   }
