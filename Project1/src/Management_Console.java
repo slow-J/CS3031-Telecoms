@@ -1,15 +1,18 @@
 import java.net.DatagramSocket;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import tcdIO.*;
 
@@ -53,7 +56,15 @@ public class Management_Console extends Node
     //make class for banlist and constructor 
 	
     // Banlist.checkIfBan(checkBan);
-
+    if(checkIfValidURL(checkBan))
+    {
+      if(!checkIfBan(checkBan))
+      {
+        banned=false;
+      }
+    }
+    
+  
     try
     {
       while (true)
@@ -69,7 +80,7 @@ public class Management_Console extends Node
 
         terminal.println("--------------------------------------------------------------------");
         header = new byte[PacketContent.HEADERLENGTH];
-
+        //header[1] is where data is saved on ban or not ban
         if (banned)
         {
           header[1] = 0;
@@ -105,25 +116,48 @@ public class Management_Console extends Node
     terminal.println("Waiting for contact");
     while (true) 
     {
-      //terminal.println("press 1 to add to banlist, 2 to view ");
-      int action = (terminal.readInt("press 1 to add to banlist, 2 to view"));
+      int action = (terminal.readInt("press 1 to add url to banlist\n"));
       if (action==1)
       {
-        String ban = (terminal.readString("type website to ban"));
-        add2ban(ban);
-        terminal.println(ban+" successfully added to banlist");
-      }
-      else if (action==2)
-      {
-        
+        String ban = "http://"+(terminal.readString("type website to ban without the www or http\n"));
+        //String ban = "http://"+java.net.URLEncoder.encode(firstban, "UTF-8");
+        boolean isValid=checkIfValidURL(ban);
+        if(isValid)
+        {
+          add2ban(ban);
+          terminal.println(ban+", successfully added to banlist");
+        }
+        else
+        {
+          terminal.println(ban+", not valid");
+        }
       }
       else
       {
-        terminal.println("Invalid selection");
+        //terminal.println("Invalid selection");
+        //System.out.println(true);
+        if(checkIfBan("http://"+terminal.readString("checkIfBan\n")))
+          terminal.println("true");
+        else
+          terminal.println("false");
       }
     }
 }
-
+  private static boolean checkIfValidURL(String tryurl)
+  {
+    //checks if url valid
+    try
+    {
+      URL url1 = new URL(tryurl); 
+      url1.toURI();
+    }
+    catch (MalformedURLException | URISyntaxException e)
+    {
+      //e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
   public static void initBanList()
   {
     //creates file if doesnt exist
@@ -138,70 +172,62 @@ public class Management_Console extends Node
     }
 
   }
-  
+
   public static void add2ban(String banWord)
   {
-    //adds banWord to the banlist
-    BufferedWriter output=null;
-    try
+    if (!checkIfBan(banWord))
     {
-      output = new BufferedWriter(new FileWriter("banlist.txt", true) );
-    } catch (IOException e2)
-    {
-      // TODO Auto-generated catch block
-      e2.printStackTrace();
+      // adds banWord to the banlist
+      BufferedWriter output = null;
+      try
+      {
+        output = new BufferedWriter(new FileWriter("banlist.txt", true));
+      } catch (IOException e2)
+      {
+        // TODO Auto-generated catch block
+        e2.printStackTrace();
+      }
+      try
+      {
+        output.newLine();
+        output.append(banWord);
+      } catch (IOException e2)
+      {
+        // TODO Auto-generated catch block
+        e2.printStackTrace();
+      }
+      try
+      {
+        output.close();
+      } catch (IOException e2)
+      {
+        // TODO Auto-generated catch block
+        e2.printStackTrace();
+      }
+      System.out.println("Bans updated");
     }
-    try
-    {
-      output.newLine();
-      output.append(banWord);
-    } catch (IOException e2)
-    {
-      // TODO Auto-generated catch block
-      e2.printStackTrace();
-    }
-    try
-    {
-      output.close();
-    } catch (IOException e2)
-    {
-      // TODO Auto-generated catch block
-      e2.printStackTrace();
-    }
-    System.out.println("Bans updated");
+    else
+      System.out.println("Already banned");
   }
 
-  public static boolean checkIfBan(String cmp, String txt)
+  public static boolean checkIfBan(String cmp)
   {
-    // KMP search algorithm from my repository
-    // https://github.com/slow-J/TCD/blob/master/Year2/CS2010/KMP/KMPSearch.java
-
-    /************
-     * TODO take out http and // from cmp, remove https://, sanitise, make function
-     * to santise
-     *
-     */
-
-    if (txt.length() < 1 || cmp.length() < 1)
-      return false;
-    int lenP = cmp.length();
-    int lenT = txt.length();
-    int i, j;
-    for (i = 0, j = 0; i < lenT && j < lenP; i++)
+    Path path = Paths.get("banlist.txt");
+    ArrayList<String> lines=null;
+    try
     {
-      if (txt.charAt(i) == cmp.charAt(j))
-        j++;
-      else
-      {
-        i -= j;
-        j = 0;
-      }
+      lines = (ArrayList<String>) Files.readAllLines(path);
+    } catch (IOException e)
+    {
+      e.printStackTrace();
+      return false;
     }
-    if (j == lenP)
-      return true; // found
-    else
-      return false; // not found
-
+    for(int i=0;i<lines.size();i++)
+    {
+      if(lines.get(i).equals(cmp))
+        return true;
+    }
+    return false;
   }
 
   public static void main(String[] args)
