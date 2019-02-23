@@ -116,30 +116,38 @@ public class Management_Console extends Node
     terminal.println("Waiting for contact");
     while (true) 
     {
-      int action = (terminal.readInt("press 1 to add url to banlist\n"));
+      int action = (terminal.readInt("press 1 to add url to banlist or 2 to check is a url banned\n"));
       if (action==1)
       {
         String ban = "http://"+(terminal.readString("type website to ban without the www or http\n"));
-        //String ban = "http://"+java.net.URLEncoder.encode(firstban, "UTF-8");
         boolean isValid=checkIfValidURL(ban);
         if(isValid)
         {
           add2ban(ban);
-          terminal.println(ban+", successfully added to banlist");
         }
         else
         {
-          terminal.println(ban+", not valid");
+          terminal.println(ban+", not a valid url");
+        }
+      }
+      else if(action==2)
+      {
+        String ban = "http://"+(terminal.readString("type website to ban without the www or http\n"));
+        if(!checkIfValidURL(ban))
+        {
+          terminal.println(ban+", not a valid url");
+        } 
+        else
+        {
+          if (checkIfBan(ban))
+            terminal.println(ban + ", is banned");
+          else
+            terminal.println(ban + ", is not  banned");
         }
       }
       else
       {
-        //terminal.println("Invalid selection");
-        //System.out.println(true);
-        if(checkIfBan("http://"+terminal.readString("checkIfBan\n")))
-          terminal.println("true");
-        else
-          terminal.println("false");
+        terminal.println("Invalid selection");       
       }
     }
 }
@@ -173,7 +181,7 @@ public class Management_Console extends Node
 
   }
 
-  public static void add2ban(String banWord)
+  public void add2ban(String banWord)
   {
     if (!checkIfBan(banWord))
     {
@@ -189,6 +197,7 @@ public class Management_Console extends Node
       }
       try
       {
+        //adds the banned url to the next line in the txt file
         output.newLine();
         output.append(banWord);
       } catch (IOException e2)
@@ -204,10 +213,10 @@ public class Management_Console extends Node
         // TODO Auto-generated catch block
         e2.printStackTrace();
       }
-      System.out.println("Bans updated");
+      terminal.println(banWord+", successfully added to banlist\n");
     }
     else
-      System.out.println("Already banned");
+      terminal.println(banWord+", already banned\n");
   }
 
   public static boolean checkIfBan(String cmp)
@@ -216,6 +225,7 @@ public class Management_Console extends Node
     ArrayList<String> lines=null;
     try
     {
+      //each line of txt file to arraylist of strings
       lines = (ArrayList<String>) Files.readAllLines(path);
     } catch (IOException e)
     {
@@ -226,6 +236,7 @@ public class Management_Console extends Node
     {
       if(lines.get(i).equals(cmp))
         return true;
+      //true if arraylist contains the compared word
     }
     return false;
   }
