@@ -6,10 +6,6 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import tcdIO.*;
 /**
  * 
@@ -27,7 +23,6 @@ public class Proxy_Server extends Node
   static final int DEFAULT_SRC_PORT = 4000;
   static final int DEFAULT_CLIENT_PORT = 1000;
   static final int DEFAULT_MANAGE_PORT = 2000;
- // private String url = "http://www.apache.org/";
   /**
    * @param args
    */
@@ -62,14 +57,14 @@ public class Proxy_Server extends Node
     }
   }
 
-  public void onReceipt(DatagramPacket packet)
+  public synchronized void onReceipt(DatagramPacket packet)
   {
     byte[] buffer = packet.getData();
     StringContent content = new StringContent(packet);
     terminal.println(content.toString());
     int notBan = buffer[1];
     terminal.println(""+notBan);
-    if ((notBan)<0)
+    if ((notBan)==-1)
     { 
       dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_MANAGE_PORT);
       terminal.println("Sent to port: "+DEFAULT_MANAGE_PORT);
@@ -86,7 +81,7 @@ public class Proxy_Server extends Node
     }
     else if(notBan==1)//http request
     { 
-      String urlString = "https://"+content.toString();
+      String urlString = "http://"+content.toString();
       
       URL urlObject = null;
       try
@@ -155,7 +150,7 @@ public class Proxy_Server extends Node
     }
 
     
-    //this.notify();
+  this.notify();
   }
 
   public synchronized void start() throws Exception 

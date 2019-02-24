@@ -33,7 +33,7 @@ public class Management_Console extends Node
   {
     try
     {
-      //dstAddress = new InetSocketAddress(dstHost, dstPort);
+      dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_DST_PORT);
       this.terminal = terminal;
       socket = new DatagramSocket(srcPort);
       listener.go();
@@ -44,15 +44,14 @@ public class Management_Console extends Node
 
   }
 
-  public void onReceipt(DatagramPacket packet)
+  public synchronized void onReceipt(DatagramPacket packet)
   {
     boolean banned = true;	
     StringContent content = new StringContent(packet);
-    String checkBan = content.toString();
+    String checkBan = "http://"+content.toString();
     //init ban list at start
     //check now
 
-    // Banlist.checkIfBan(checkBan);
     if(checkIfValidURL(checkBan))
     {
       if(!checkIfBan(checkBan))
@@ -63,36 +62,38 @@ public class Management_Console extends Node
       
     try
     {
-      while (true)
+
+      // add to banlist
+      DatagramPacket sendPacket = null;
+
+      byte[] payload = checkBan.getBytes();
+      byte[] header = new byte[PacketContent.HEADERLENGTH];
+      byte[] buffer = null;
+
+      terminal.println("--------------------------------------------------------------------");
+      // header[1] is where data is saved on ban or not ban
+      if (banned)
       {
-        // add to banlist
-        DatagramPacket sendPacket = null;
-
-        byte[] payload = checkBan.getBytes();
-        byte[] header = new byte[PacketContent.HEADERLENGTH];
-        byte[] buffer = null;
-
-        terminal.println("--------------------------------------------------------------------");
-        //header[1] is where data is saved on ban or not ban
-        if (banned)
-        {
-          header[1] = 0;
-        } else
-        {
-          header[1] = 1;
-        }
-        // send to source
-        dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_DST_PORT);
-        buffer = new byte[header.length + payload.length];
-        System.arraycopy(header, 0, buffer, 0, header.length);
-        System.arraycopy(payload, 0, buffer, header.length, payload.length);
-        terminal.println(checkBan + ": is 1 for banned:"+ banned);
-        terminal.println("Sending packet to port: " + DEFAULT_DST_PORT);
-        sendPacket = new DatagramPacket(buffer, buffer.length, dstAddress); // send packet to dest
-
-        socket.send(sendPacket);
-        terminal.println("Message sent");
+        header[1] = 0;
+      } else
+      {
+        header[1] = 1;
       }
+      // send to source
+      //dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_DST_PORT);
+      buffer = new byte[header.length + payload.length];
+      System.arraycopy(header, 0, buffer, 0, header.length);
+      System.arraycopy(payload, 0, buffer, header.length, payload.length);
+      terminal.println(checkBan + ": is banned:" + banned);
+      terminal.println("Sending packet to port: " + DEFAULT_DST_PORT);
+      sendPacket = new DatagramPacket(buffer, buffer.length, dstAddress); // send
+                                                                          // packet
+                                                                          // to
+                                                                          // dest
+
+      socket.send(sendPacket);
+      terminal.println("Message sent");
+
     } catch (IOException e)
     {
       e.printStackTrace();
@@ -100,7 +101,7 @@ public class Management_Console extends Node
     this.notify();
   }
 
-  public synchronized void start() throws Exception 
+  public void start() throws Exception 
   {
     initBanList();
     terminal.print("Waiting for contact\n");

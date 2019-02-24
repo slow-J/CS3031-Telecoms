@@ -5,12 +5,7 @@ import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-
-import tcdIO.Terminal;
+import tcdIO.*;
 
 /**
  * @author slowinsj
@@ -83,9 +78,6 @@ public class Web_Proxy_Client extends Node
 
   public static void main(String[] args)
   {
-    // TODO Auto-generated method stub
-    //CloseableHttpClient httpclient = HttpClients.createDefault();
-    //HttpGet httpGet = new HttpGet("http://targethost/homepage");
     try 
     {
       Terminal terminal = new Terminal("Client");
@@ -107,8 +99,7 @@ public class Web_Proxy_Client extends Node
     terminal.println();
     terminal.println("--------------------------------------------------------------------");
     terminal.println("New message received: " + content.toString());
-    terminal.println("Website to access: ");
-    this.notify();
+   // terminal.println("Website to access: ");
   }
 
 }
