@@ -1,7 +1,11 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -37,7 +41,7 @@ public class Proxy_Server extends Node
     try
     {
       this.terminal = terminal;
-      socket = new DatagramSocket(DEFAULT_SRC_PORT);
+      socket = new DatagramSocket(src_port);
       listener.go();
     } catch (java.lang.Exception e)
     {
@@ -62,12 +66,13 @@ public class Proxy_Server extends Node
   {
     byte[] buffer = packet.getData();
     StringContent content = new StringContent(packet);
+    terminal.println(content.toString());
     int notBan = buffer[1];
     terminal.println(""+notBan);
     if ((notBan)<0)
     { 
       dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_MANAGE_PORT);
-      terminal.println("Sent to manage");
+      terminal.println("Sent to port: "+DEFAULT_MANAGE_PORT);
       packet.setSocketAddress(dstAddress);
       
       try
@@ -78,52 +83,79 @@ public class Proxy_Server extends Node
         e.printStackTrace();
       }
       
-      
-      this.notify();
     }
     else if(notBan==1)//http request
-    { /*
-      String urlString = "https://candidate.hubteam.com/candidateTest/v3/problem/dataset?userKey=de26f243bbc04aa67175c1c1c5dc";
+    { 
+      String urlString = "https://"+content.toString();
       
-      URL urlObject = new URL(urlString);
-      HttpURLConnection connect = (HttpURLConnection) urlObject.openConnection();
-      connect.setRequestMethod("GET");
+      URL urlObject = null;
+      try
+      {
+        urlObject = new URL(urlString);
+      } catch (MalformedURLException e1)
+      {
+        // should never happen as this should be handled by management console
+        e1.printStackTrace();
+      }
+      HttpURLConnection connect = null;
+      try
+      {
+        connect = (HttpURLConnection) urlObject.openConnection();
+      } catch (IOException e1)
+      {
+        // TODO Auto-generated catch block
+        e1.printStackTrace();
+      }
+      try
+      {
+        connect.setRequestMethod("GET");
+      } catch (ProtocolException e)
+      {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
       
-      int responseCode = connect.getResponseCode(); 
-      System.out.println("response code is " + responseCode);
-*/
-       
-      
+      int responseCode = -1;
+      try
+      {
+        responseCode = connect.getResponseCode();
+      } catch (IOException e)
+      {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } 
+      terminal.println("response code is " + responseCode);
+      //send back to client
     }
     else
     {
-      Byte finDest=null;
-      
       DatagramPacket newPacket = null;
 
       byte[] payload = null;
-      byte[] header = null;
+      byte[] header = new byte[PacketContent.HEADERLENGTH];
       buffer = null;
       payload = (content.toString()+" BANNED").getBytes();
       dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_CLIENT_PORT);
-     
+      buffer = new byte[header.length + payload.length];
       System.arraycopy(header, 0, buffer, 0, header.length);
       System.arraycopy(payload, 0, buffer, header.length, payload.length);
       terminal.println("Sending packet to port: " + DEFAULT_CLIENT_PORT);
-      packet = new DatagramPacket(buffer, buffer.length, dstAddress); // send
+      newPacket = new DatagramPacket(buffer, buffer.length, dstAddress); // send
                                                                       // packet
                                                                       // to dest
 
       try
       {
-        socket.send(packet);
+        socket.send(newPacket);
+        terminal.println("Message sent");
       } catch (IOException e)
       {
         e.printStackTrace();
       }
-      terminal.println("Message sent");
     }
+
     
+    //this.notify();
   }
 
   public synchronized void start() throws Exception 

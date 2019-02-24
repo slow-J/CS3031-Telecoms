@@ -26,12 +26,11 @@ public class Web_Proxy_Client extends Node
   /**
    * @param args
    */
-  Web_Proxy_Client(Terminal terminal, String dstHost) throws SocketTimeoutException {
+  Web_Proxy_Client(Terminal terminal, int src_port) throws SocketTimeoutException {
     try
-    {
-     
+    {     
       this.terminal = terminal;
-      socket = new DatagramSocket(DEFAULT_SRC_PORT);
+      socket = new DatagramSocket(src_port);
       listener.go();
     } catch (java.lang.Exception e)
     {
@@ -91,7 +90,7 @@ public class Web_Proxy_Client extends Node
     {
       Terminal terminal = new Terminal("Client");
     
-      (new Web_Proxy_Client(terminal, DEFAULT_DST_NODE)).start();
+      (new Web_Proxy_Client(terminal, DEFAULT_SRC_PORT)).start();
 
       terminal.println("Program completed");
     }
@@ -108,7 +107,7 @@ public class Web_Proxy_Client extends Node
     terminal.println();
     terminal.println("--------------------------------------------------------------------");
     terminal.println("New message received: " + content.toString());
-    terminal.println("String to send: ");
+    terminal.println("Website to access: ");
     this.notify();
   }
 

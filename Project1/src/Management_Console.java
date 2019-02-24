@@ -29,11 +29,11 @@ public class Management_Console extends Node
   Terminal terminal;
   InetSocketAddress dstAddress;
 
-  Management_Console(Terminal terminal, String dstHost, int dstPort, int srcPort) throws SocketTimeoutException
+  Management_Console(Terminal terminal,  int srcPort) throws SocketTimeoutException
   {
     try
     {
-      dstAddress = new InetSocketAddress(dstHost, dstPort);
+      //dstAddress = new InetSocketAddress(dstHost, dstPort);
       this.terminal = terminal;
       socket = new DatagramSocket(srcPort);
       listener.go();
@@ -44,7 +44,7 @@ public class Management_Console extends Node
 
   }
 
-  public synchronized void onReceipt(DatagramPacket packet)
+  public void onReceipt(DatagramPacket packet)
   {
     boolean banned = true;	
     StringContent content = new StringContent(packet);
@@ -66,16 +66,13 @@ public class Management_Console extends Node
       while (true)
       {
         // add to banlist
-        Byte finDest = null;
-
         DatagramPacket sendPacket = null;
 
-        byte[] payload = null;
-        byte[] header = null;
+        byte[] payload = checkBan.getBytes();
+        byte[] header = new byte[PacketContent.HEADERLENGTH];
         byte[] buffer = null;
 
         terminal.println("--------------------------------------------------------------------");
-        header = new byte[PacketContent.HEADERLENGTH];
         //header[1] is where data is saved on ban or not ban
         if (banned)
         {
@@ -84,26 +81,23 @@ public class Management_Console extends Node
         {
           header[1] = 1;
         }
-        // use header[2] for ban or not
         // send to source
-        dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_SRC_PORT);
+        dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_DST_PORT);
+        buffer = new byte[header.length + payload.length];
         System.arraycopy(header, 0, buffer, 0, header.length);
         System.arraycopy(payload, 0, buffer, header.length, payload.length);
-
-        terminal.println("Sending packet to proxy: " + DEFAULT_SRC_PORT);
+        terminal.println(checkBan + ": is 1 for banned:"+ banned);
+        terminal.println("Sending packet to port: " + DEFAULT_DST_PORT);
         sendPacket = new DatagramPacket(buffer, buffer.length, dstAddress); // send packet to dest
 
         socket.send(sendPacket);
         terminal.println("Message sent");
       }
-    } catch (SocketTimeoutException s)
-    {
-      System.out.println("Socket timed out 10 seconds!");
-      s.printStackTrace();
     } catch (IOException e)
     {
       e.printStackTrace();
     }
+    this.notify();
   }
 
   public synchronized void start() throws Exception 
@@ -241,7 +235,7 @@ public class Management_Console extends Node
     try
     {
       Terminal terminal = new Terminal("Management_Console");
-      (new Management_Console(terminal, DEFAULT_DST_NODE, DEFAULT_DST_PORT, DEFAULT_SRC_PORT )).start();
+      (new Management_Console(terminal,DEFAULT_SRC_PORT )).start();
      
       terminal.println("Program completed");
     } catch (java.lang.Exception e)
