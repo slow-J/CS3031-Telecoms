@@ -107,6 +107,7 @@ public class Management_Console extends Node
     terminal.print("Waiting for contact\n");
     while (true) 
     {
+      terminal.println();
       int action = (terminal.readInt("press 1 to add url to banlist or 2 to check is a url banned\n"));
       if (action==1)
       {
@@ -140,7 +141,14 @@ public class Management_Console extends Node
         terminal.println("Invalid selection");       
       }
     }
-}
+  }
+  /* 
+   * @param url including http://
+   * 
+   * checks to see if the syntax is valid or url is malformed
+   * 
+   * @return true if valid url
+   */
   private static boolean checkIfValidURL(String tryurl)
   {
     //checks if url valid

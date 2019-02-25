@@ -33,48 +33,43 @@ public class Web_Proxy_Client extends Node
     }
 
   }
+
   public void start() throws SocketTimeoutException
   {
-    try
+
+    while (true)
     {
-      while (true) 
+      DatagramPacket packet = null;
+
+      byte[] payload = null;
+      byte[] header = null;
+      byte[] buffer = null;
+
+      terminal.println("--------------------------------------------------------------------");
+      payload = (terminal.readString("Website to access: ")).getBytes();
+      header = new byte[PacketContent.HEADERLENGTH];
+
+      header[1] = -1;
+      dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_DST_PORT);
+      buffer = new byte[header.length + payload.length];
+      System.arraycopy(header, 0, buffer, 0, header.length);
+      System.arraycopy(payload, 0, buffer, header.length, payload.length);
+
+      terminal.println("Sending packet to port: " + DEFAULT_DST_PORT);
+      packet = new DatagramPacket(buffer, buffer.length, dstAddress); 
+      // send packet to dest
+      try
       {
-        DatagramPacket packet = null;
-
-        byte[] payload = null;
-        byte[] header = null;
-        byte[] buffer = null;
-        
-        terminal.println("--------------------------------------------------------------------");
-        payload = (terminal.readString("Website to access: ")).getBytes();
-        header = new byte[PacketContent.HEADERLENGTH];
-        
-        
-        header[1] = -1;
-        dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_DST_PORT);
-        buffer = new byte[header.length + payload.length];
-        System.arraycopy(header, 0, buffer, 0, header.length);
-        System.arraycopy(payload, 0, buffer, header.length, payload.length);
-      
-        terminal.println("Sending packet to port: "+ DEFAULT_DST_PORT);
-        packet = new DatagramPacket(buffer, buffer.length, dstAddress); //send packet to dest
-
         socket.send(packet);
-        terminal.println("Message sent");
+      } catch (IOException e)
+      {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
-    } 
-    catch (SocketTimeoutException s) 
-    {
-      System.out.println("Socket timed out 10 seconds!");
-      s.printStackTrace();
+      terminal.println("Message sent");
     }
-    catch (IOException e) 
-    {     
-      e.printStackTrace();  
-    }
-    
 
-}
+  }
 
   public static void main(String[] args)
   {
