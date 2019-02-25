@@ -42,7 +42,7 @@ public class Proxy_Server extends Node
   }
   public static void main(String[] args) 
   {
-   // httprequest("http://facebook.com");
+    // cache of capacity of 4
     myLRU = new LRUcache(4);
     try
     {
@@ -60,15 +60,18 @@ public class Proxy_Server extends Node
   {
     byte[] buffer = packet.getData();
     StringContent content = new StringContent(packet);
-    terminal.println(content.toString());
+    //terminal.println(content.toString());
     byte client_no = buffer[0];
-    terminal.println(client_no+" client");
+    
+    // for testing terminal.println(client_no+" client");
+    
+    // notBan is -1 when not checked if banned
     int notBan = buffer[1];
-    terminal.println(""+notBan);
+    // for testing terminal.println(""+notBan);
     if ((notBan)==-1) // came from client
     { 
       dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_MANAGE_PORT);
-      terminal.println("Sent to port: "+DEFAULT_MANAGE_PORT);
+      terminal.println("Sent to management console at port: "+DEFAULT_MANAGE_PORT);
       packet.setSocketAddress(dstAddress);
       
       try
@@ -91,14 +94,9 @@ public class Proxy_Server extends Node
       if(notBan==1)//http request
       {
         
-        
-        /*TODO: pseudo-LRU cache here
-        **
-        **
-        **
-        */
         String url = content.toString();
         int responseCode;
+        //cache access
         if(myLRU.checkIfInCache(url))
         {
           responseCode=myLRU.getResponse(url);

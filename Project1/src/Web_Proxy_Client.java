@@ -79,7 +79,7 @@ public class Web_Proxy_Client extends Node
     try 
     {
       Terminal terminal = new Terminal("Client");
-      byte client_no = terminal.readByte("Enter client number");
+      byte client_no = terminal.readByte("Enter client number: ");
       (new Web_Proxy_Client(terminal, client_no,DEFAULT_SRC_PORT+client_no)).start();
 
       terminal.println("Program completed");
@@ -96,8 +96,7 @@ public class Web_Proxy_Client extends Node
     StringContent content = new StringContent(packet);
     terminal.println("New message received: " + content.toString());
     terminal.println("--------------------------------------------------------------------");
-    terminal.println();
-   // terminal.println("Website to access: ");
+    
     this.notify();
   }
 

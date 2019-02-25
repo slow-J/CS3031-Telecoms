@@ -12,3 +12,4 @@ http://google.wp.com
 http://google.com
 http://a
 http://aa.pl
+http://jakub.com
