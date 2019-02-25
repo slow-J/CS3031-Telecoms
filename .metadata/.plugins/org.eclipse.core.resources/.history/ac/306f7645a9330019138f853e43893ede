@@ -1,0 +1,121 @@
+
+import java.net.DatagramSocket;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
+
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
+import tcdIO.Terminal;
+
+/**
+ * @author slowinsj
+ *
+ */
+public class Web_Proxy_Client extends Node
+{
+  static final String DEFAULT_DST_NODE = "localhost";
+  static final int DEFAULT_SRC_PORT = 1000;
+  static final int DEFAULT_DST_PORT = 4000;
+  Terminal terminal;
+  InetSocketAddress dstAddress;
+  /**
+   * @param args
+   */
+  Web_Proxy_Client(Terminal terminal, String dstHost) throws SocketTimeoutException {
+    try
+    {
+     
+      this.terminal = terminal;
+      socket = new DatagramSocket(DEFAULT_SRC_PORT);
+      listener.go();
+    } catch (java.lang.Exception e)
+    {
+      e.printStackTrace();
+    }
+
+  }
+  public void start() throws SocketTimeoutException
+  {
+    try
+    {
+      while (true) 
+      {
+        Byte finDest=null;
+        
+        DatagramPacket packet = null;
+
+        byte[] payload = null;
+        byte[] header = null;
+        byte[] buffer = null;
+        
+        terminal.println("--------------------------------------------------------------------");
+        payload = (terminal.readString("String to send: ")).getBytes();
+        header = new byte[PacketContent.HEADERLENGTH];
+        
+        finDest = terminal.readByte("Input message recepient(1/2/3/4/5/6): ");//select recipient
+        
+        
+        header[1] = finDest;
+        header[2] = -1;
+        dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_DST_PORT);
+        buffer = new byte[header.length + payload.length];
+        System.arraycopy(header, 0, buffer, 0, header.length);
+        System.arraycopy(payload, 0, buffer, header.length, payload.length);
+      
+        terminal.println("Sending packet to port: "+ DEFAULT_DST_PORT);
+        packet = new DatagramPacket(buffer, buffer.length, dstAddress); //send packet to dest
+
+        socket.send(packet);
+        terminal.println("Message sent");
+      }
+    } 
+    catch (SocketTimeoutException s) 
+    {
+      System.out.println("Socket timed out 10 seconds!");
+      s.printStackTrace();
+    }
+    catch (IOException e) 
+    {     
+      e.printStackTrace();  
+    }
+    
+
+}
+
+  public static void main(String[] args)
+  {
+    // TODO Auto-generated method stub
+    //CloseableHttpClient httpclient = HttpClients.createDefault();
+    //HttpGet httpGet = new HttpGet("http://targethost/homepage");
+    try 
+    {
+      Terminal terminal = new Terminal("Client");
+    
+      (new Web_Proxy_Client(terminal, DEFAULT_DST_NODE)).start();
+
+      terminal.println("Program completed");
+    }
+    catch (java.lang.Exception e) 
+    {
+      e.printStackTrace();
+}
+  }
+
+ 
+  public void onReceipt(DatagramPacket packet) 
+  {
+    // TODO Auto-generated method stub
+    StringContent content = new StringContent(packet);
+    terminal.println();
+    terminal.println("--------------------------------------------------------------------");
+    terminal.println("New message received: " + content.toString());
+    terminal.println("String to send: ");
+    this.notify();
+  }
+
+}

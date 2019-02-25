@@ -1,0 +1,14 @@
+import java.util.HashMap;
+
+class LRUCache
+{
+  HashMap<Integer, LRUnode> map = null;
+  int cap;
+ 
+  public LRUCache(int capacity) 
+  {
+    this.map = new HashMap<>();
+    this.cap = capacity;
+  }
+
+}

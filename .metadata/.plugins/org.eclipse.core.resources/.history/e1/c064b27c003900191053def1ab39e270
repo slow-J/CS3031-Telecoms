@@ -1,0 +1,18 @@
+import java.util.ArrayList;
+
+class LRUCache
+{
+  ArrayList<LRUnode> list = null;
+  int capacity;
+ 
+  public LRUCache(int capacity) 
+  {
+    this.list = new ArrayList<>();
+    this.capacity = capacity;
+  }
+  public int getResponse(String key)
+  {
+    
+  }
+
+}

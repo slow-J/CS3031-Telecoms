@@ -1,0 +1,183 @@
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import tcdIO.*;
+/**
+ * 
+ */
+
+/**
+ * @author slowinsj
+ *
+ */
+public class Proxy_Server extends Node
+{
+  Terminal terminal;
+  InetSocketAddress dstAddress;
+  static final String DEFAULT_DST_NODE = "localhost";
+  static final int DEFAULT_SRC_PORT = 4000;
+  static final int DEFAULT_CLIENT_PORT = 1000;
+  static final int DEFAULT_MANAGE_PORT = 2000;
+  /**
+   * @param args
+   */
+  /*
+   * public static void test() { CloseableHttpClient server =
+   * HttpClients.createDefault(); String a = new String(getUrl()); HttpGet
+   * httpGet = new HttpGet(Proxy_Server.getUrl()); }
+   */
+  Proxy_Server(Terminal terminal, int src_port )
+  {
+    try
+    {
+      this.terminal = terminal;
+      socket = new DatagramSocket(src_port);
+      listener.go();
+    } catch (java.lang.Exception e)
+    {
+      e.printStackTrace();
+    }
+  }
+  public static void main(String[] args) 
+  {
+   // httprequest("http://facebook.com");
+    try
+    {
+      Terminal terminal = new Terminal("Proxy_Server");
+      (new Proxy_Server(terminal,DEFAULT_SRC_PORT)).start();
+
+      terminal.println("Program completed");
+    } catch (java.lang.Exception e)
+    {
+      e.printStackTrace();
+    }
+  }
+
+  public synchronized void onReceipt(DatagramPacket packet)
+  {
+    byte[] buffer = packet.getData();
+    StringContent content = new StringContent(packet);
+    terminal.println(content.toString());
+    int notBan = buffer[1];
+    terminal.println(""+notBan);
+    if ((notBan)==-1) // came from client
+    { 
+      dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_MANAGE_PORT);
+      terminal.println("Sent to port: "+DEFAULT_MANAGE_PORT);
+      packet.setSocketAddress(dstAddress);
+      
+      try
+      {
+        socket.send(packet);
+      } catch (IOException e)
+      {
+        e.printStackTrace();
+      }
+      
+    }
+    else 
+    {
+      DatagramPacket newPacket = null;
+
+      byte[] payload = null;
+      byte[] header = new byte[PacketContent.HEADERLENGTH];
+      buffer = null;
+      dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_CLIENT_PORT);
+      if(notBan==1)//http request
+      {
+        String urlString = "http://"+content.toString();
+        /*TODO: pseudo-LRU cache here
+        **
+        **
+        **
+        */
+        int responseCode = httprequest(urlString);
+        payload = (content.toString()+" response code: " + responseCode).getBytes();    
+        buffer = new byte[header.length + payload.length];
+        System.arraycopy(header, 0, buffer, 0, header.length);
+        System.arraycopy(payload, 0, buffer, header.length, payload.length);
+        terminal.println("Sending response to client: " + DEFAULT_CLIENT_PORT);
+        newPacket = new DatagramPacket(buffer, buffer.length, dstAddress);
+        //send back to client
+        
+      }
+      else // when something is banned
+      {
+       
+        payload = (content.toString()+" BANNED").getBytes();        
+        buffer = new byte[header.length + payload.length];
+        System.arraycopy(header, 0, buffer, 0, header.length);
+        System.arraycopy(payload, 0, buffer, header.length, payload.length);
+        terminal.println("Sending denial to client: " + DEFAULT_CLIENT_PORT);
+        newPacket = new DatagramPacket(buffer, buffer.length, dstAddress); 
+        // send packet to client
+      }
+      try
+      {
+        socket.send(newPacket);
+        terminal.println("Message sent");
+      } catch (IOException e)
+      {
+        e.printStackTrace();
+      }
+    }
+     
+    
+    
+  this.notify();
+  }
+
+  public synchronized void start() throws Exception 
+  {
+    terminal.println("Waiting for contact");
+    this.wait();
+  }
+  public static int httprequest(String urlString)
+  {
+    System.out.println(urlString);
+    URL urlObject = null;
+    try
+    {
+      urlObject = new URL(urlString);
+    } catch (MalformedURLException e1)
+    {
+      // should never happen as this should be handled by management console
+      e1.printStackTrace();
+    }
+    HttpURLConnection connect = null;
+    try
+    {
+      connect = (HttpURLConnection) urlObject.openConnection();
+    } catch (IOException e1)
+    {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+    try
+    {
+      connect.setRequestMethod("GET");
+    } catch (ProtocolException e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    
+    int responseCode = -1;
+    try
+    {
+      responseCode = connect.getResponseCode();
+    } catch (IOException e)
+    {
+      e.printStackTrace();
+    }
+    
+    System.out.println("response code is " + responseCode);
+    return responseCode;
+  }
+
+}

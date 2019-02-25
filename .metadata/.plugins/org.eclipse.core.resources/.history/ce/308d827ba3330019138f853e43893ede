@@ -1,0 +1,61 @@
+
+import java.net.DatagramSocket;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
+
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
+/**
+ * @author slowinsj
+ *
+ */
+public class Web_Proxy_Client extends Node
+{
+  static final String DEFAULT_DST_NODE = "localhost";
+  static final int DEFAULT_SRC_PORT = 2001;
+  static final int DEFAULT_SRC_PORT = 2001;
+
+  /**
+   * @param args
+   */
+  Web_Proxy_Client(Terminal terminal, String dstHost, int dstPort) throws SocketTimeoutException {
+    try
+    {
+      setPort(srcPort);
+      this.terminal = terminal;
+      socket = new DatagramSocket(srcPort);
+      listener.go();
+    } catch (java.lang.Exception e)
+    {
+      e.printStackTrace();
+    }
+
+  }
+
+  public static void main(String[] args)
+  {
+    // TODO Auto-generated method stub
+    //CloseableHttpClient httpclient = HttpClients.createDefault();
+    //HttpGet httpGet = new HttpGet("http://targethost/homepage");
+    try 
+    {
+      Terminal terminal = new Terminal("Client");
+    
+      int clientPortNumber = terminal.readInt("Client port number(1/2/3/4/5/6): ");
+     
+      (new Client(terminal, DEFAULT_DST_NODE, DEFAULT_SRC_PORT)).start();
+
+      terminal.println("Program completed");
+    }
+    catch (java.lang.Exception e) 
+    {
+      e.printStackTrace();
+}
+  }
+
+}

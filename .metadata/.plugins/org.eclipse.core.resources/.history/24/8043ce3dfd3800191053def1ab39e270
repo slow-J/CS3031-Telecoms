@@ -1,0 +1,18 @@
+/**
+ * 
+ */
+
+/**
+ * @author Jakub
+ *
+ */
+public class LRUcache {
+
+  /**
+   * 
+   */
+  public LRUcache() {
+    // TODO Auto-generated constructor stub
+  }
+
+}

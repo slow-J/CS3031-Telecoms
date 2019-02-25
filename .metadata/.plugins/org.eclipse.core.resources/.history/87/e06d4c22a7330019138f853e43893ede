@@ -1,0 +1,89 @@
+import java.net.DatagramPacket;
+import java.net.InetSocketAddress;
+
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import tcdIO.*;
+/**
+ * 
+ */
+
+/**
+ * @author slowinsj
+ *
+ */
+public class Proxy_Server extends Node
+{
+  Terminal terminal;
+  InetSocketAddress dstAddress;
+  static final int DEFAULT_SRC_PORT = 4000;
+  static final int DEFAULT_CLIENT_PORT = 1000;
+  static final int DEFAULT_MANAGE_PORT = 2000;
+ // private String url = "http://www.apache.org/";
+  /**
+   * @param args
+   */
+  public static void test()
+  {
+    CloseableHttpClient server = HttpClients.createDefault();
+    String a = new String(getUrl());
+    HttpGet httpGet = new HttpGet(Proxy_Server.getUrl());
+  }
+  public static void main(String[] args)
+  {
+  }
+  
+  public static String getUrl()
+  {
+    String url ="";
+    return url;
+  }
+  
+
+  public void onReceipt(DatagramPacket packet)
+  {
+    byte[] buffer = packet.getData();
+    int dNumber = buffer[1] & 0xff;
+    int notBan = buffer[1] & 0xff;
+    if ((notBan)<0)
+    { 
+      dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_MANAE_PORT);
+      StringContent content = new StringContent(packet);
+      terminal.println();
+      terminal.println("--------------------------------------------------------------------");
+      terminal.println("New message received: " + content.toString());
+      
+      this.notify();
+    }
+    else if(notBan==1)
+    { 
+      int outs;
+      if (dNumber>this.port-2000)
+        outs = Controller.getOut( 6, port);
+      else 
+        outs = Controller.getOut( 1, port);
+      dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, outs);
+      terminal.println();
+      terminal.println("Message relayed to port: " + outs);
+      
+      packet.setSocketAddress(dstAddress);
+      
+      try 
+      {
+        socket.send(packet);
+      }
+      catch (IOException e) 
+      {
+        e.printStackTrace();
+      }
+      
+    }
+    else
+    {
+      
+    }
+    
+  }
+
+}

@@ -1,0 +1,15 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+
+class LRUCache
+{
+  ArrayList<LRUnode> list = null;
+  int capacity;
+ 
+  public LRUCache(int capacity) 
+  {
+    this.list = new ArrayList<>();
+    this.cap = capacity;
+  }
+
+}
