@@ -27,11 +27,7 @@ public class Proxy_Server extends Node
   /**
    * @param args
    */
-  /*
-   * public static void test() { CloseableHttpClient server =
-   * HttpClients.createDefault(); String a = new String(getUrl()); HttpGet
-   * httpGet = new HttpGet(Proxy_Server.getUrl()); }
-   */
+  
   Proxy_Server(Terminal terminal, int src_port )
   {
     try
@@ -65,6 +61,8 @@ public class Proxy_Server extends Node
     byte[] buffer = packet.getData();
     StringContent content = new StringContent(packet);
     terminal.println(content.toString());
+    byte client_no = buffer[0];
+    terminal.println(client_no+" client");
     int notBan = buffer[1];
     terminal.println(""+notBan);
     if ((notBan)==-1) // came from client
@@ -89,7 +87,7 @@ public class Proxy_Server extends Node
       byte[] payload = null;
       byte[] header = new byte[PacketContent.HEADERLENGTH];
       buffer = null;
-      dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_CLIENT_PORT);
+      dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, client_no+DEFAULT_CLIENT_PORT);
       if(notBan==1)//http request
       {
         
@@ -117,7 +115,7 @@ public class Proxy_Server extends Node
         buffer = new byte[header.length + payload.length];
         System.arraycopy(header, 0, buffer, 0, header.length);
         System.arraycopy(payload, 0, buffer, header.length, payload.length);
-        terminal.println("Sending response to client: " + DEFAULT_CLIENT_PORT);
+        terminal.println("Sending response to client: " + client_no);
         newPacket = new DatagramPacket(buffer, buffer.length, dstAddress);
         //send back to client
         
@@ -129,7 +127,7 @@ public class Proxy_Server extends Node
         buffer = new byte[header.length + payload.length];
         System.arraycopy(header, 0, buffer, 0, header.length);
         System.arraycopy(payload, 0, buffer, header.length, payload.length);
-        terminal.println("Sending denial to client: " + DEFAULT_CLIENT_PORT);
+        terminal.println("Sending denial to client: " + client_no);
         newPacket = new DatagramPacket(buffer, buffer.length, dstAddress); 
         // send packet to client
       }

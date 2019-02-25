@@ -16,14 +16,16 @@ public class Web_Proxy_Client extends Node
   static final String DEFAULT_DST_NODE = "localhost";
   static final int DEFAULT_SRC_PORT = 1000;
   static final int DEFAULT_DST_PORT = 4000;
+  byte client_no;
   Terminal terminal;
   InetSocketAddress dstAddress;
   /**
    * @param args
    */
-  Web_Proxy_Client(Terminal terminal, int src_port) throws SocketTimeoutException {
+  Web_Proxy_Client(Terminal terminal,byte client,  int src_port) throws SocketTimeoutException {
     try
     {     
+      client_no = client;
       this.terminal = terminal;
       socket = new DatagramSocket(src_port);
       listener.go();
@@ -46,9 +48,9 @@ public class Web_Proxy_Client extends Node
       byte[] buffer = null;
 
       terminal.println("--------------------------------------------------------------------");
-      payload = (terminal.readString("Website to access: ")).getBytes();
+      payload = (terminal.readString("Website to access: \n")).getBytes();
       header = new byte[PacketContent.HEADERLENGTH];
-
+      header[0] = (byte)client_no;
       header[1] = -1;
       dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_DST_PORT);
       buffer = new byte[header.length + payload.length];
@@ -68,6 +70,7 @@ public class Web_Proxy_Client extends Node
       }
       terminal.println("Message sent");
     }
+    
 
   }
 
@@ -76,8 +79,8 @@ public class Web_Proxy_Client extends Node
     try 
     {
       Terminal terminal = new Terminal("Client");
-    
-      (new Web_Proxy_Client(terminal, DEFAULT_SRC_PORT)).start();
+      byte client_no = terminal.readByte("Enter client number");
+      (new Web_Proxy_Client(terminal, client_no,DEFAULT_SRC_PORT+client_no)).start();
 
       terminal.println("Program completed");
     }
@@ -88,13 +91,14 @@ public class Web_Proxy_Client extends Node
   }
 
  
-  public void onReceipt(DatagramPacket packet) 
+  public synchronized void onReceipt(DatagramPacket packet) 
   {
     StringContent content = new StringContent(packet);
     terminal.println("New message received: " + content.toString());
     terminal.println("--------------------------------------------------------------------");
     terminal.println();
    // terminal.println("Website to access: ");
+    this.notify();
   }
 
 }

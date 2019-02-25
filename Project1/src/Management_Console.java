@@ -22,6 +22,7 @@ import tcdIO.*;
  */
 public class Management_Console extends Node
 {
+  static final int DEFAULT_CLIENT_PORT = 1000;
   static final int DEFAULT_SRC_PORT = 2000;
   static final int DEFAULT_DST_PORT = 4000;
   static final String DEFAULT_DST_NODE = "localhost";
@@ -33,6 +34,7 @@ public class Management_Console extends Node
   {
     try
     {
+      // can only have one destination
       dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_DST_PORT);
       this.terminal = terminal;
       socket = new DatagramSocket(srcPort);
@@ -46,6 +48,8 @@ public class Management_Console extends Node
 
   public synchronized void onReceipt(DatagramPacket packet)
   {
+    byte[] buffer = packet.getData();
+    byte client_no = buffer[0];
     boolean banned = true;	
     StringContent content = new StringContent(packet);
     String checkBan = content.toString();
@@ -68,7 +72,7 @@ public class Management_Console extends Node
 
       byte[] payload = checkBan.getBytes();
       byte[] header = new byte[PacketContent.HEADERLENGTH];
-      byte[] buffer = null;
+      buffer = null;
 
       terminal.println("--------------------------------------------------------------------");
       // header[1] is where data is saved on ban or not ban
@@ -79,17 +83,15 @@ public class Management_Console extends Node
       {
         header[1] = 1;
       }
+      header[0]= client_no;
       // send to source
-      //dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_DST_PORT);
       buffer = new byte[header.length + payload.length];
       System.arraycopy(header, 0, buffer, 0, header.length);
       System.arraycopy(payload, 0, buffer, header.length, payload.length);
       terminal.println(checkBan + ": is banned:" + banned);
       terminal.println("Sending packet to port: " + DEFAULT_DST_PORT);
-      sendPacket = new DatagramPacket(buffer, buffer.length, dstAddress); // send
-                                                                          // packet
-                                                                          // to
-                                                                          // dest
+      sendPacket = new DatagramPacket(buffer, buffer.length, dstAddress); 
+      // send packet to dest
 
       socket.send(sendPacket);
       terminal.println("Message sent");
@@ -104,10 +106,9 @@ public class Management_Console extends Node
   public void start() throws Exception 
   {
     initBanList();
-    terminal.print("Waiting for contact\n");
+    terminal.println("Waiting for contact");
     while (true) 
     {
-      terminal.println();
       int action = (terminal.readInt("press 1 to add url to banlist or 2 to check is a url banned\n"));
       if (action==1)
       {
