@@ -55,7 +55,7 @@ public class Proxy_Server extends Node
       e.printStackTrace();
     }
   }
-
+  // when it receives packet
   public synchronized void onReceipt(DatagramPacket packet)
   {
     byte[] buffer = packet.getData();
@@ -120,7 +120,7 @@ public class Proxy_Server extends Node
       }
       else // when something is banned
       {
-       
+        
         payload = (content.toString()+" BANNED").getBytes();        
         buffer = new byte[header.length + payload.length];
         System.arraycopy(header, 0, buffer, 0, header.length);
@@ -131,8 +131,11 @@ public class Proxy_Server extends Node
       }
       try
       {
+        //sending packet
         socket.send(newPacket);
-        terminal.println("Message sent");
+        terminal.println("Message sent to client");
+        terminal.println("--------------------------------------------------------------------");
+        
       } catch (IOException e)
       {
         e.printStackTrace();
@@ -147,6 +150,7 @@ public class Proxy_Server extends Node
   public synchronized void start() throws Exception 
   {
     terminal.println("Waiting for contact");
+    terminal.println("--------------------------------------------------------------------");
     this.wait();
   }
   public static int httprequest(String urlString)

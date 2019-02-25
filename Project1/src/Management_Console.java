@@ -74,7 +74,6 @@ public class Management_Console extends Node
       byte[] header = new byte[PacketContent.HEADERLENGTH];
       buffer = null;
 
-      terminal.println("--------------------------------------------------------------------");
       // header[1] is where data is saved on ban or not ban
       if (banned)
       {
@@ -94,7 +93,7 @@ public class Management_Console extends Node
 
       socket.send(sendPacket);
       terminal.println("Packet sent to proxy at port: " + DEFAULT_DST_PORT);
-
+      terminal.println("--------------------------------------------------------------------");
     } catch (IOException e)
     {
       e.printStackTrace();
@@ -139,6 +138,8 @@ public class Management_Console extends Node
       {
         terminal.println("Invalid selection");       
       }
+      terminal.println("--------------------------------------------------------------------");
+      
     }
   }
   /* 

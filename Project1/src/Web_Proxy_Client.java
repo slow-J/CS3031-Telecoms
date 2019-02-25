@@ -47,8 +47,7 @@ public class Web_Proxy_Client extends Node
       byte[] header = null;
       byte[] buffer = null;
 
-      terminal.println("--------------------------------------------------------------------");
-      payload = (terminal.readString("Website to access: \n")).getBytes();
+      payload = (terminal.readString("Website to access (without http or www): \n")).getBytes();
       header = new byte[PacketContent.HEADERLENGTH];
       header[0] = (byte)client_no;
       header[1] = -1;
@@ -57,7 +56,6 @@ public class Web_Proxy_Client extends Node
       System.arraycopy(header, 0, buffer, 0, header.length);
       System.arraycopy(payload, 0, buffer, header.length, payload.length);
 
-      terminal.println("Sending packet to port: " + DEFAULT_DST_PORT);
       packet = new DatagramPacket(buffer, buffer.length, dstAddress); 
       // send packet to dest
       try
@@ -68,7 +66,9 @@ public class Web_Proxy_Client extends Node
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
-      terminal.println("Message sent");
+      terminal.println("Packet sent to port: " + DEFAULT_DST_PORT);
+      terminal.println("--------------------------------------------------------------------");
+      
     }
     
 
@@ -94,7 +94,7 @@ public class Web_Proxy_Client extends Node
   public synchronized void onReceipt(DatagramPacket packet) 
   {
     StringContent content = new StringContent(packet);
-    terminal.println("New message received: " + content.toString());
+    terminal.println("New message received:\n " + content.toString());
     terminal.println("--------------------------------------------------------------------");
     
     this.notify();
