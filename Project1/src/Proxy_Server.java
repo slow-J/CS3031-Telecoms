@@ -23,6 +23,7 @@ public class Proxy_Server extends Node
   static final int DEFAULT_SRC_PORT = 4000;
   static final int DEFAULT_CLIENT_PORT = 1000;
   static final int DEFAULT_MANAGE_PORT = 2000;
+  static LRUcache myLRU;
   /**
    * @param args
    */
@@ -45,6 +46,8 @@ public class Proxy_Server extends Node
   }
   public static void main(String[] args) 
   {
+   // httprequest("http://facebook.com");
+    myLRU = new LRUcache(4);
     try
     {
       Terminal terminal = new Terminal("Proxy_Server");
@@ -64,7 +67,7 @@ public class Proxy_Server extends Node
     terminal.println(content.toString());
     int notBan = buffer[1];
     terminal.println(""+notBan);
-    if ((notBan)==-1)
+    if ((notBan)==-1) // came from client
     { 
       dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_MANAGE_PORT);
       terminal.println("Sent to port: "+DEFAULT_MANAGE_PORT);
@@ -79,66 +82,57 @@ public class Proxy_Server extends Node
       }
       
     }
-    else if(notBan==1)//http request
-    { 
-      String urlString = "http://"+content.toString();
-      
-      URL urlObject = null;
-      try
-      {
-        urlObject = new URL(urlString);
-      } catch (MalformedURLException e1)
-      {
-        // should never happen as this should be handled by management console
-        e1.printStackTrace();
-      }
-      HttpURLConnection connect = null;
-      try
-      {
-        connect = (HttpURLConnection) urlObject.openConnection();
-      } catch (IOException e1)
-      {
-        // TODO Auto-generated catch block
-        e1.printStackTrace();
-      }
-      try
-      {
-        connect.setRequestMethod("GET");
-      } catch (ProtocolException e)
-      {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-      
-      int responseCode = -1;
-      try
-      {
-        responseCode = connect.getResponseCode();
-      } catch (IOException e)
-      {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } 
-      terminal.println("response code is " + responseCode);
-      //send back to client
-    }
-    else
+    else 
     {
       DatagramPacket newPacket = null;
 
       byte[] payload = null;
       byte[] header = new byte[PacketContent.HEADERLENGTH];
       buffer = null;
-      payload = (content.toString()+" BANNED").getBytes();
       dstAddress = new InetSocketAddress(DEFAULT_DST_NODE, DEFAULT_CLIENT_PORT);
-      buffer = new byte[header.length + payload.length];
-      System.arraycopy(header, 0, buffer, 0, header.length);
-      System.arraycopy(payload, 0, buffer, header.length, payload.length);
-      terminal.println("Sending packet to port: " + DEFAULT_CLIENT_PORT);
-      newPacket = new DatagramPacket(buffer, buffer.length, dstAddress); // send
-                                                                      // packet
-                                                                      // to dest
-
+      if(notBan==1)//http request
+      {
+        
+        
+        /*TODO: pseudo-LRU cache here
+        **
+        **
+        **
+        */
+        String url = content.toString();
+        int responseCode;
+        if(myLRU.checkIfInCache(url))
+        {
+          responseCode=myLRU.getResponse(url);
+          terminal.println(responseCode+" found in LRU");
+        }
+        else
+        {
+          String urlwithhttp = "http://"+content.toString();
+          responseCode = httprequest(urlwithhttp);
+          myLRU.addLRUnode(url, responseCode);
+        }
+        
+        payload = (url+" response code: " + responseCode).getBytes();    
+        buffer = new byte[header.length + payload.length];
+        System.arraycopy(header, 0, buffer, 0, header.length);
+        System.arraycopy(payload, 0, buffer, header.length, payload.length);
+        terminal.println("Sending response to client: " + DEFAULT_CLIENT_PORT);
+        newPacket = new DatagramPacket(buffer, buffer.length, dstAddress);
+        //send back to client
+        
+      }
+      else // when something is banned
+      {
+       
+        payload = (content.toString()+" BANNED").getBytes();        
+        buffer = new byte[header.length + payload.length];
+        System.arraycopy(header, 0, buffer, 0, header.length);
+        System.arraycopy(payload, 0, buffer, header.length, payload.length);
+        terminal.println("Sending denial to client: " + DEFAULT_CLIENT_PORT);
+        newPacket = new DatagramPacket(buffer, buffer.length, dstAddress); 
+        // send packet to client
+      }
       try
       {
         socket.send(newPacket);
@@ -148,7 +142,8 @@ public class Proxy_Server extends Node
         e.printStackTrace();
       }
     }
-
+     
+    
     
   this.notify();
   }
@@ -157,6 +152,48 @@ public class Proxy_Server extends Node
   {
     terminal.println("Waiting for contact");
     this.wait();
+  }
+  public static int httprequest(String urlString)
+  {
+    System.out.println(urlString);
+    URL urlObject = null;
+    try
+    {
+      urlObject = new URL(urlString);
+    } catch (MalformedURLException e1)
+    {
+      // should never happen as this should be handled by management console
+      e1.printStackTrace();
+    }
+    HttpURLConnection connect = null;
+    try
+    {
+      connect = (HttpURLConnection) urlObject.openConnection();
+    } catch (IOException e1)
+    {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+    try
+    {
+      connect.setRequestMethod("GET");
+    } catch (ProtocolException e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    
+    int responseCode = -1;
+    try
+    {
+      responseCode = connect.getResponseCode();
+    } catch (IOException e)
+    {
+      e.printStackTrace();
+    }
+    
+    System.out.println("response code is " + responseCode);
+    return responseCode;
   }
 
 }

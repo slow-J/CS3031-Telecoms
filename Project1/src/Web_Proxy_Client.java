@@ -96,9 +96,9 @@ public class Web_Proxy_Client extends Node
   public void onReceipt(DatagramPacket packet) 
   {
     StringContent content = new StringContent(packet);
-    terminal.println();
-    terminal.println("--------------------------------------------------------------------");
     terminal.println("New message received: " + content.toString());
+    terminal.println("--------------------------------------------------------------------");
+    terminal.println();
    // terminal.println("Website to access: ");
   }
 

@@ -48,13 +48,13 @@ public class Management_Console extends Node
   {
     boolean banned = true;	
     StringContent content = new StringContent(packet);
-    String checkBan = "http://"+content.toString();
+    String checkBan = content.toString();
     //init ban list at start
     //check now
 
-    if(checkIfValidURL(checkBan))
+    if(checkIfValidURL("http://"+checkBan))
     {
-      if(!checkIfBan(checkBan))
+      if(!checkIfBan("http://"+checkBan))
       {
         banned=false;
       }
