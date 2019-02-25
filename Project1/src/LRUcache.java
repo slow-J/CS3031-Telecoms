@@ -73,15 +73,5 @@ public class LRUcache
     }
     
   }
-  public static void main(String[] args)
-  {
-    LRUcache myLRU = new LRUcache(4);
-    myLRU.addLRUnode("poo.com", 100);
-    myLRU.addLRUnode("iw.com", 200);
-    myLRU.addLRUnode("thirdo.com", 300);
-    myLRU.addLRUnode("444.com", 400);
-    myLRU.addLRUnode("555.com", 500);
-    myLRU.getList();
-    
-  }
+ 
 }

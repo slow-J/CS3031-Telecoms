@@ -8,7 +8,7 @@ http://googl.com
 http://ada.a.a.ads
 http://aaa
 http://aaa.jpg
-http://google.wp.com%2F%EF%BF%BF%EF%BF%BF%24%24%25%2F%5B%5D%5B.jpg
+http://google.wp.com
 http://google.com
 http://a
 http://aa.pl
