@@ -1,0 +1,11 @@
+public class LRUnode{
+    int key;
+    int value;
+    Node prev;
+    Node next;
+ 
+    public LRUnode(int key, int value){
+        this.key=key;
+        this.value=value;
+    }
+}

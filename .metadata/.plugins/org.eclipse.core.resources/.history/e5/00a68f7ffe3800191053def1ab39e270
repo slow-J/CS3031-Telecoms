@@ -1,0 +1,8 @@
+
+public class LRUnode {
+
+  public LRUnode() {
+    // TODO Auto-generated constructor stub
+  }
+
+}
